@@ -66,4 +66,6 @@ int list_dump(LIST* sp);
 
 int list_dtor(LIST* sp);
 
+int list_pop(LIST* sp, int anchor);
+
 #endif

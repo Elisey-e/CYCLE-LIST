@@ -106,9 +106,27 @@ int list_dump(LIST* sp){
     for (int i = 0; i < (int) sp->capacity; i++){
         printf("%d ", sp->next[i].near_el);
     }
+    printf("|\n|");
+    for (int i = 0; i < (int) sp->capacity; i++){
+        if (sp->next[i].free == true){
+            printf("- ");
+        }
+        else{
+            printf("+ ");
+        }
+    }
     printf("|\n\nPREV\n|");
     for (int i = 0; i < (int) sp->capacity; i++){
         printf("%i ", sp->prev[i].near_el);
+    }
+    printf("|\n|");
+    for (int i = 0; i < (int) sp->capacity; i++){
+        if (sp->prev[i].free == true){
+            printf("- ");
+        }
+        else{
+            printf("+ ");
+        }
     }
     printf("|\n");
 
@@ -125,3 +143,31 @@ int list_dtor(LIST* sp){
 }
 
 
+int list_pop(LIST* sp, int anchor){
+    assert(sp != NULL);
+
+    sp->next[sp->prev[anchor].near_el].near_el = sp->next[anchor].near_el;
+    sp->prev[sp->next[anchor].near_el].near_el = sp->prev[anchor].near_el;
+
+    assert(sp->prev[sp->next[anchor].near_el].free == false);
+    assert(sp->next[sp->prev[anchor].near_el].free == false);
+
+    
+    sp->data[anchor] = POISON;
+    sp->next[anchor] = {sp->free, true};
+    sp->prev[sp->free] = {anchor, true};
+
+    sp->prev[anchor].free = true;
+
+    sp->free = anchor;
+
+
+
+    
+
+    sp->size--;
+
+
+
+    return NORMAL_RUNNING;
+}

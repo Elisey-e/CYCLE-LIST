@@ -21,6 +21,11 @@ int main ()
     list_append_before(&sp_main, 'C', 2);
     list_append_before(&sp_main, 'D', 0);
 
+    list_pop(&sp_main, 4);
+    list_pop(&sp_main, 3);
+    list_pop(&sp_main, 2);
+    
+
     list_dump(&sp_main);
     list_dtor(&sp_main);
 
