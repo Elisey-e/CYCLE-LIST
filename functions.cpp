@@ -1,5 +1,5 @@
 #include "functions.hpp"
-#include "running_functions.hpp"
+#include "colors.hpp"
 
 
 /*!
@@ -8,33 +8,66 @@
 */
 
 
-int stack_push(STACK* st, Elem_t el){
-    assert(st != NULL);
+int list_ctor(LIST* sp){
+    assert(sp != NULL);
+    sp->capacity = 8;
 
-    if (st->size == st->capacity){
-        int code = stack_increase(st);
-        assert(code == NORMAL_RUNNING);
+    sp->data = (Elem_t*) calloc(sp->capacity, sizeof(Elem_t));
+    sp->next = (int*) calloc(sp->capacity, sizeof(Elem_t));
+    sp->prev = (int*) calloc(sp->capacity, sizeof(Elem_t));
+    list_fullfill_poison(sp);
+    next_and_prev_index_free(sp);
+
+    sp->data[0] = -1; // зависит от типа Elem_t
+    sp->next[0] = 0;
+    sp->prev[0] = 0;
+
+    sp->size = 0;
+    sp->free = 1;
+    
+    return NORMAL_RUNNING;
+}
+
+int list_fullfill_poison(LIST* sp){
+    assert(sp != NULL);
+    for (int i = 0; i < (int) sp->capacity; i++){
+        sp->data[i] = POISON;
     }
-    st->data[st->size] = el;
-    st->size++;
+    
+
+    return NORMAL_RUNNING;
+}
+
+int next_and_prev_index_free(LIST* sp){
+    for (int i = 1; i < (int) sp->capacity; i++){
+        sp->prev[i] = i - 1;
+        sp->next[i] = i + 1;
+    }
+
+    return NORMAL_RUNNING;
+}
+
+int list_append(LIST* sp){
+    assert(sp != NULL);
+    
     return NORMAL_RUNNING;
 }
 
 
-int stack_pop(STACK* st, Elem_t* el){
-    assert(st != NULL);
-
-    if (st->size == 0){
-        return ERR_WHILE_POPPING;
+int list_dump(LIST* sp){
+    printf("LISTDUMP\n|");
+    for (int i = 0; i < (int) sp->capacity; i++){
+        printf("%d ", i);
     }
-    *el = st->data[--st->size];
-    st->data[st->size] = POISON;
-
-    if (4 * st->size < st->capacity - 1){
-        int code = stack_decrease(st);
-        assert(code == NORMAL_RUNNING);
+    printf("|\n|");
+    for (int i = 0; i < (int) sp->capacity; i++){
+        printf("__");
     }
-
-    return *el;
+    printf("|\n|");
+    for (int i = 0; i < (int) sp->capacity; i++){
+        printf("%c ", sp->data[i]);
+    }
+    printf("|\n");
+    
+    return NORMAL_RUNNING;
 }
-

@@ -22,16 +22,11 @@
 enum TYPE_EL
 {
     NORMAL_RUNNING = 10,
-    ERR_NOT_INCREASED = 10 + 1,
-    ERR_NOT_DECREASED = 10 + 2,
-    ERR_WHILE_POPPING = 10 + 3,
-    ERR_ELEM_PLACE = 10 + 4,
-    PROBLEMS_WERE_NOT_DETECTED = 10 + 5,
 };
 
 enum SPECIAL_TYPES
 {
-    POISON = -666,
+    POISON = '#', // зависит от типа Elem_t
 };
 
 /*!
@@ -39,24 +34,25 @@ enum SPECIAL_TYPES
     \brief Заголовочный файл с прототипами функций.
 */
 
-typedef int Elem_t;
+typedef char Elem_t;
 
-typedef struct stack{
+typedef struct list{
     Elem_t* data;
+    int* next;
+    int* prev;
     size_t size;
     size_t capacity;
-}   STACK;
+    int free;
+}   LIST;
 
-int stack_ctor(STACK* stack);
+int list_ctor(LIST* sp);
 
-int stack_push(STACK* st, Elem_t el);
+int list_fullfill_poison(LIST* sp);
 
-int stack_pop(STACK* st, Elem_t* el);
+int next_and_prev_index_free(LIST* sp);
 
-int stack_dump(STACK* stack, const char* name, const char* status);
+int list_append(LIST* sp);
 
-int stack_logdump(STACK* stack, const char* name, const char* status);
-
-int stack_dtor(STACK* stack);
+int list_dump(LIST* sp);
 
 #endif
