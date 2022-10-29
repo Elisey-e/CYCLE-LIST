@@ -33,7 +33,6 @@ int list_fullfill_poison(LIST* sp){
     for (int i = 0; i < (int) sp->capacity; i++){
         sp->data[i] = POISON;
     }
-    
 
     return NORMAL_RUNNING;
 }
@@ -48,9 +47,10 @@ int next_and_prev_index_free(LIST* sp){
     return NORMAL_RUNNING;
 }
 
-int list_append_before(LIST* sp, Elem_t el, int anchor){
+int list_append_before(LIST* sp, Elem_t el, int anchor, int* new_index){
     assert(sp != NULL);
 
+    *new_index = sp->free;
     int new_ind = sp->free;
     int free_new = sp->next[new_ind].near_el;
     sp->data[new_ind] = el;
@@ -63,15 +63,14 @@ int list_append_before(LIST* sp, Elem_t el, int anchor){
     sp->size++;
     sp->free = free_new;
 
-
-
     return NORMAL_RUNNING;
 }
 
 
-int list_append_after(LIST* sp, Elem_t el, int anchor){
+int list_append_after(LIST* sp, Elem_t el, int anchor, int* new_index){
     assert(sp != NULL);
 
+    *new_index = sp->free;
     int new_ind = sp->free;
     int free_new = sp->next[new_ind].near_el;
     sp->data[new_ind] = el;
@@ -83,7 +82,6 @@ int list_append_after(LIST* sp, Elem_t el, int anchor){
 
     sp->size++;
     sp->free = free_new;
-
     
     return NORMAL_RUNNING;
 }
@@ -151,23 +149,31 @@ int list_pop(LIST* sp, int anchor){
 
     assert(sp->prev[sp->next[anchor].near_el].free == false);
     assert(sp->next[sp->prev[anchor].near_el].free == false);
-
     
-    sp->data[anchor] = POISON;
     sp->next[anchor] = {sp->free, true};
     sp->prev[sp->free] = {anchor, true};
-
     sp->prev[anchor].free = true;
 
+    sp->data[anchor] = POISON;
     sp->free = anchor;
-
-
-
-    
-
     sp->size--;
 
+    return NORMAL_RUNNING;
+}
 
+int list_find_index(LIST* sp, Elem_t el, int* index){
+    assert(sp != NULL);
+    int i = 0;
+
+    while (sp->data[i] != el){
+        i++;
+        if (i == (int) sp->capacity){
+            *index = DONT_EXIST;
+            return NORMAL_RUNNING;
+        }
+    }
+
+    *index = i;
 
     return NORMAL_RUNNING;
 }

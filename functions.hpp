@@ -27,6 +27,7 @@ enum TYPE_EL
 enum SPECIAL_TYPES
 {
     POISON = '#', // зависит от типа Elem_t
+    DONT_EXIST = -1,
 };
 
 /*!
@@ -58,14 +59,16 @@ int list_fullfill_poison(LIST* sp);
 
 int next_and_prev_index_free(LIST* sp);
 
-int list_append_before(LIST* sp, Elem_t el, int anchor);
+int list_append_before(LIST* sp, Elem_t el, int anchor, int* new_index);
 
-int list_append_after(LIST* sp, Elem_t el, int anchor);
+int list_append_after(LIST* sp, Elem_t el, int anchor, int* new_index);
 
 int list_dump(LIST* sp);
 
 int list_dtor(LIST* sp);
 
 int list_pop(LIST* sp, int anchor);
+
+int list_find_index(LIST* sp, Elem_t el, int* index);
 
 #endif
