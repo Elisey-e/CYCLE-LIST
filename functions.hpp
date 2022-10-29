@@ -36,14 +36,21 @@ enum SPECIAL_TYPES
 
 typedef char Elem_t;
 
+typedef struct Index_t{
+    int near_el;
+    bool free;
+}   INDEX;
+
 typedef struct list{
     Elem_t* data;
-    int* next;
-    int* prev;
+    INDEX* next;
+    INDEX* prev;
     size_t size;
     size_t capacity;
     int free;
 }   LIST;
+
+
 
 int list_ctor(LIST* sp);
 
@@ -51,8 +58,12 @@ int list_fullfill_poison(LIST* sp);
 
 int next_and_prev_index_free(LIST* sp);
 
-int list_append(LIST* sp);
+int list_append_before(LIST* sp, Elem_t el, int anchor);
+
+int list_append_after(LIST* sp, Elem_t el, int anchor);
 
 int list_dump(LIST* sp);
+
+int list_dtor(LIST* sp);
 
 #endif
