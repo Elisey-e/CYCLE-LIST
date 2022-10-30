@@ -8,9 +8,11 @@
 */
 
 
-int list_ctor(LIST* sp){
+int list_ctor(LIST* sp, size_t capacity){
     assert(sp != NULL);
-    sp->capacity = 8;
+    sp->capacity = capacity;
+    sp->size = 1;
+    sp->free = 1;
 
     sp->data = (Elem_t*) calloc(sp->capacity, sizeof(Elem_t));
     sp->next = (INDEX*) calloc(sp->capacity, sizeof(INDEX));
@@ -21,9 +23,6 @@ int list_ctor(LIST* sp){
     sp->data[0] = -1; // зависит от типа Elem_t
     sp->next[0] = {0, false};
     sp->prev[0] = {0, false};
-
-    sp->size = 0;
-    sp->free = 1;
     
     return NORMAL_RUNNING;
 }
@@ -38,7 +37,7 @@ int list_fullfill_poison(LIST* sp){
 }
 
 int next_and_prev_index_free(LIST* sp){
-    for (int i = 1; i < (int) sp->capacity; i++){
+    for (int i = sp->free; i < (int) sp->capacity; i++){
         sp->prev[i] = {i - 1, true};
         sp->next[i] = {i + 1, true};
     }
@@ -49,6 +48,13 @@ int next_and_prev_index_free(LIST* sp){
 
 int list_append_before(LIST* sp, Elem_t el, int anchor, int* new_index){
     assert(sp != NULL);
+    assert(sp->size <= sp->capacity && "stack_overfilled");
+
+    if (sp->size + 1 == sp->capacity){
+        list_increase(sp);
+    }
+
+
 
     *new_index = sp->free;
     int new_ind = sp->free;
@@ -69,6 +75,11 @@ int list_append_before(LIST* sp, Elem_t el, int anchor, int* new_index){
 
 int list_append_after(LIST* sp, Elem_t el, int anchor, int* new_index){
     assert(sp != NULL);
+    assert(sp->size <= sp->capacity && "stack_overfilled");
+
+    if (sp->size + 1 == sp->capacity){
+        list_increase(sp);
+    }
 
     *new_index = sp->free;
     int new_ind = sp->free;
@@ -90,40 +101,40 @@ int list_append_after(LIST* sp, Elem_t el, int anchor, int* new_index){
 int list_dump(LIST* sp){
     printf("LISTDUMP\n|");
     for (int i = 0; i < (int) sp->capacity; i++){
-        printf("%d ", i);
+        printf("%2d ", i);
     }
     printf("|\n|");
     for (int i = 0; i < (int) sp->capacity; i++){
-        printf("__");
+        printf("___");
     }
     printf("|\n|");
     for (int i = 0; i < (int) sp->capacity; i++){
-        printf("%c ", sp->data[i]);
+        printf("%2c ", sp->data[i]);
     }
     printf("|\n\nNEXT\n|");
     for (int i = 0; i < (int) sp->capacity; i++){
-        printf("%d ", sp->next[i].near_el);
+        printf("%2d ", sp->next[i].near_el);
     }
     printf("|\n|");
     for (int i = 0; i < (int) sp->capacity; i++){
         if (sp->next[i].free == true){
-            printf("- ");
+            printf(" - ");
         }
         else{
-            printf("+ ");
+            printf(" + ");
         }
     }
     printf("|\n\nPREV\n|");
     for (int i = 0; i < (int) sp->capacity; i++){
-        printf("%i ", sp->prev[i].near_el);
+        printf("%2d ", sp->prev[i].near_el);
     }
     printf("|\n|");
     for (int i = 0; i < (int) sp->capacity; i++){
         if (sp->prev[i].free == true){
-            printf("- ");
+            printf(" - ");
         }
         else{
-            printf("+ ");
+            printf(" + ");
         }
     }
     printf("|\n");
@@ -136,6 +147,8 @@ int list_dump(LIST* sp){
 
 int list_dtor(LIST* sp){
     free(sp->data);
+    free(sp->next);
+    free(sp->prev);
 
     return NORMAL_RUNNING;
 }
@@ -143,6 +156,10 @@ int list_dtor(LIST* sp){
 
 int list_pop(LIST* sp, int anchor){
     assert(sp != NULL);
+
+    if (sp->size * 4 <= sp->capacity){
+        list_decrease(sp);
+    }
 
     sp->next[sp->prev[anchor].near_el].near_el = sp->next[anchor].near_el;
     sp->prev[sp->next[anchor].near_el].near_el = sp->prev[anchor].near_el;
@@ -175,5 +192,83 @@ int list_find_index(LIST* sp, Elem_t el, int* index){
 
     *index = i;
 
+    return NORMAL_RUNNING;
+}
+
+
+int list_increase(LIST* sp){
+    assert(sp != NULL);
+
+    if (sp->size + 1 < sp->capacity){
+        return ERR_NOT_INCREASED;
+    }
+
+    LIST new_sp;
+    list_ctor(&new_sp, sp->capacity * 2);
+
+    for (int i = 0; i < (int) sp->capacity; i++){
+        new_sp.data[i] = sp->data[i];
+        new_sp.next[i] = sp->next[i];
+        new_sp.prev[i] = sp->prev[i];
+    }
+
+    new_sp.free = sp->free;
+    new_sp.size = sp->size;
+
+    next_and_prev_index_free(&new_sp);
+
+    list_dtor(sp);
+
+    *sp = new_sp;
+
+    return NORMAL_RUNNING;
+}
+
+int list_decrease(LIST* sp){
+    assert(sp != NULL);
+
+    if ((sp->size + 1) * 4 > sp->capacity && sp->capacity / 2 < 4){
+        return ERR_NOT_DECREASED;
+    }
+
+    LIST new_sp;
+    list_ctor(&new_sp, sp->capacity / 2);
+
+    for (int i = 0; i < (int) sp->capacity / 2; i++){
+        new_sp.data[i] = sp->data[i];
+        new_sp.next[i] = sp->next[i];
+        new_sp.prev[i] = sp->prev[i];
+    }
+
+    new_sp.free = sp->free;
+    new_sp.size = sp->size;
+
+    new_sp.next[sp->capacity - 1] = {0, true};
+
+    list_dtor(sp);
+
+    *sp = new_sp;
+
+    return NORMAL_RUNNING;
+
+}
+
+int list_append_head(LIST* sp, Elem_t el, int* new_index){
+    return NORMAL_RUNNING;
+}
+
+int list_append_tail(LIST* sp, Elem_t el, int* new_index){
+    return NORMAL_RUNNING;
+}
+
+int list_gen_head_index(LIST* sp){
+    return NORMAL_RUNNING;
+}
+
+int list_gen_tail_index(LIST* sp){
+    return NORMAL_RUNNING;
+}
+
+int list_find_name_by_index(LIST* sp, int index){
     return NORMAL_RUNNING;
 }

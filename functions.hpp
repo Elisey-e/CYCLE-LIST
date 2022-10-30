@@ -22,6 +22,9 @@
 enum TYPE_EL
 {
     NORMAL_RUNNING = 10,
+    ERR_NOT_INCREASED = 10 + 1,
+    ERR_NOT_DECREASED = 10 + 2,
+    ERR_NOT_POPPED = 10 + 3,
 };
 
 enum SPECIAL_TYPES
@@ -53,7 +56,7 @@ typedef struct list{
 
 
 
-int list_ctor(LIST* sp);
+int list_ctor(LIST* sp, size_t capacity);
 
 int list_fullfill_poison(LIST* sp);
 
@@ -70,5 +73,9 @@ int list_dtor(LIST* sp);
 int list_pop(LIST* sp, int anchor);
 
 int list_find_index(LIST* sp, Elem_t el, int* index);
+
+int list_increase(LIST* sp);
+
+int list_decrease(LIST* sp);
 
 #endif
