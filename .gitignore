@@ -30,7 +30,3 @@
 *.exe
 *.out
 *.app
-
-*.exe.stackdump
-/.vscode
-/doxy
